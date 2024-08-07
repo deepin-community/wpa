@@ -1,6 +1,6 @@
 Source: wpa
-Maintainer: Deepin Developer <deepin-dev@deepin.org>
-Uploaders: Deepin Packages Builder <packages@deepin.org>
+Maintainer: Debian wpasupplicant Maintainers <wpa@packages.debian.org>
+Uploaders:
  Andrej Shadura <andrewsh@debian.org>
 Section: net
 Priority: optional
@@ -21,8 +21,8 @@ Build-Depends: debhelper-compat (= 13),
  docbook-utils <!nodoc>,
 Standards-Version: 4.4.1
 Rules-Requires-Root: no
-#Vcs-Browser
-#Vcs-Git
+Vcs-Browser: https://salsa.debian.org/debian/wpa
+Vcs-Git: https://salsa.debian.org/debian/wpa.git
 Homepage: https://w1.fi/wpa_supplicant/
 
 Package: hostapd
@@ -31,7 +31,6 @@ Multi-Arch: foreign
 Pre-Depends: ${misc:Pre-Depends}
 Depends: ${shlibs:Depends},
  ${misc:Depends},
- lsb-base
 Description: access point and authentication server for Wi-Fi and Ethernet
  IEEE 802.11 AP and IEEE 802.1X/WPA/WPA2/WPA3/EAP Authenticator
  .
@@ -73,8 +72,8 @@ Architecture: linux-any kfreebsd-any
 Multi-Arch: foreign
 Depends: ${shlibs:Depends},
  ${misc:Depends},
- lsb-base,
  adduser
+Breaks: network-manager (<< 1.36.4-2~)
 Suggests: wpagui,
  libengine-pkcs11-openssl
 Description: client support for WPA and WPA2 (IEEE 802.11i)
