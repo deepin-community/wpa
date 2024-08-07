@@ -1,3 +1,12 @@
+wpa (2:2.10-deepin1) unstable; urgency=medium
+
+  * Avoid downgrade.
+  * Apply patches from 2:2.10-deepin:
+    d/patches/deepin-fix-slow-certification.patch
+  * CVE-2024-5290.
+
+ -- Tianyu Chen <sweetyfish@deepin.org>  Wed, 07 Aug 2024 10:45:58 +0800
+
 wpa (2:2.10-22) unstable; urgency=medium
 
   * Only load libraries from trusted path (CVE-2024-5290, LP: #2067613).
