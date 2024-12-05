@@ -16,4 +16,8 @@ upstream-fixes/0015-Abort-ongoing-scan.patch
 upstream-fixes/0016-Override-ieee80211w-from-pmf-for-AP-mode-in-wpa_supp.patch
 0017-CVE-2023-52160-PEAP-client-Update-Phase-2-authentica.patch
 CVE-2024-5290-lib_engine_trusted_path.patch
-deepin-fix-slow-certification.patch
+
+uniontech-filter-eap-response.patch
+uniontech-scan-failed-when-down.patch
+uniontech-add-failed_restart.patch
+uniontech-dbus-security-hardending.patch

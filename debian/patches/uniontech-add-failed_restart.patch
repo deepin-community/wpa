@@ -1,0 +1,12 @@
+Index: wpa/wpa_supplicant/systemd/wpa_supplicant.service.in
+===================================================================
+--- wpa.orig/wpa_supplicant/systemd/wpa_supplicant.service.in	2024-12-04 17:48:43.000000000 +0800
++++ wpa/wpa_supplicant/systemd/wpa_supplicant.service.in	2024-12-04 17:51:23.294146846 +0800
+@@ -13,6 +13,7 @@
+ Group=netdev
+ RuntimeDirectory=wpa_supplicant
+ RuntimeDirectoryMode=0750
++Restart=on-failure
+ 
+ [Install]
+ WantedBy=multi-user.target

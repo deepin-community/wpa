@@ -1,0 +1,30 @@
+Index: wpa/src/eapol_supp/eapol_supp_sm.c
+===================================================================
+--- wpa.orig/src/eapol_supp/eapol_supp_sm.c	2023-09-11 19:42:41.940965974 +0800
++++ wpa/src/eapol_supp/eapol_supp_sm.c	2023-09-11 19:47:23.872926053 +0800
+@@ -1340,6 +1340,25 @@
+ 				wpa_printf(MSG_DEBUG, "EAPOL: Ignore EAP packet with unknown code 10");
+ 				break;
+ 			}
++
++			if (plen >= sizeof(*ehdr) && ehdr->code == EAP_CODE_RESPONSE) {
++				const u8 *pos_tmp = (const u8 *) (ehdr + 1);
++				enum eap_type eap_type;
++				if (*pos_tmp != EAP_TYPE_EXPANDED) {
++					eap_type = *pos_tmp;
++				} else {
++					if (plen < sizeof(*ehdr) + 8) {
++						wpa_printf(MSG_INFO, "EAP: Invalid expanded EAP length");
++						break;
++					}
++					pos_tmp += 4;
++					eap_type = WPA_GET_BE32(pos_tmp);
++				}
++				if (eap_type != EAP_TYPE_LEAP) {
++					wpa_printf(MSG_DEBUG, "EAPOL: Ignore EAP packet with response");
++					break;
++				}
++			}
+ 		}
+ 
+ 		if (sm->cached_pmk) {
