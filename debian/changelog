@@ -1,3 +1,9 @@
+wpa (2:2.10-deepin2) unstable; urgency=medium
+
+  * merge v20 patch.
+
+ -- xinpeng.wang <wangxinpeng@uniontech.com>  Thu, 05 Dec 2024 11:07:17 +0800
+
 wpa (2:2.10-deepin1) unstable; urgency=medium
 
   * Avoid downgrade.

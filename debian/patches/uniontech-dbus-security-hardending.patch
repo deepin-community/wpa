@@ -1,0 +1,27 @@
+Index: wpa/wpa_supplicant/systemd/wpa_supplicant.service.in
+===================================================================
+--- wpa.orig/wpa_supplicant/systemd/wpa_supplicant.service.in	2024-12-04 18:10:41.000000000 +0800
++++ wpa/wpa_supplicant/systemd/wpa_supplicant.service.in	2024-12-04 18:10:41.000000000 +0800
+@@ -8,7 +8,7 @@
+ [Service]
+ Type=dbus
+ BusName=fi.w1.wpa_supplicant1
+-ExecStart=@BINDIR@/wpa_supplicant -u -s -O "DIR=/run/wpa_supplicant GROUP=netdev"
++ExecStart=@BINDIR@/wpa_supplicant.sh
+ ExecReload=/bin/kill -HUP $MAINPID
+ Group=netdev
+ RuntimeDirectory=wpa_supplicant
+Index: wpa/wpa_supplicant/wpa_supplicant.sh
+===================================================================
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ wpa/wpa_supplicant/wpa_supplicant.sh	2024-12-04 18:10:41.000000000 +0800
+@@ -0,0 +1,8 @@
++#!/bin/sh
++
++if [ -f /etc/deepin/deepin-debug-config/deepin_wpa_supplicant.conf ];then
++    debugLevel=$(cat /etc/deepin/deepin-debug-config/deepin_wpa_supplicant.conf)
++    /sbin/wpa_supplicant -u -s -O "DIR=/run/wpa_supplicant GROUP=netdev" ${debugLevel}
++else
++    /sbin/wpa_supplicant -u -s -O "DIR=/run/wpa_supplicant GROUP=netdev"
++fi
+new file mode 100755
