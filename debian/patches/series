@@ -21,3 +21,4 @@ uniontech-filter-eap-response.patch
 uniontech-scan-failed-when-down.patch
 uniontech-add-failed_restart.patch
 uniontech-dbus-security-hardending.patch
+uniontech-dbus-add-a-new-property-SAEConfirmMismatch.patch

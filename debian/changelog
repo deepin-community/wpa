@@ -1,3 +1,9 @@
+wpa (2:2.10-deepin3) unstable; urgency=medium
+
+  * add dbus property SAEConfirmMismatch.
+
+ -- xinpeng.wang <wangxinpeng@uniontech.com>  Thu, 26 Dec 2024 14:01:09 +0800
+
 wpa (2:2.10-deepin2) unstable; urgency=medium
 
   * merge v20 patch.
