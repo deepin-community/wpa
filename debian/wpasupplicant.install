@@ -8,5 +8,5 @@ wpa_supplicant/systemd/*.service usr/lib/systemd/system/
 wpa_supplicant/wpa_cli usr/sbin/
 wpa_supplicant/wpa_passphrase usr/bin/
 wpa_supplicant/wpa_supplicant usr/sbin/
-wpa_supplicant/wpa_supplicant.sh usr/sbin/
+wpa_supplicant/wpa_supplicant.sh usr/libexec/wpa_supplicant/
 debian/NetworkManager/no-mac-addr-change.conf usr/lib/NetworkManager/conf.d/
