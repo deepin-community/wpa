@@ -1,3 +1,9 @@
+wpa (2:2.10-deepin4) unstable; urgency=medium
+
+  * Avoid incrementing round counter for non-initial Identity Requests.
+
+ -- xinpeng.wang <wangxinpeng@uniontech.com>  Wed, 17 Dec 2025 13:41:04 +0800
+
 wpa (2:2.10-deepin3) unstable; urgency=medium
 
   * add dbus property SAEConfirmMismatch.
