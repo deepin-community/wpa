@@ -1,0 +1,32 @@
+Index: wpa/src/eap_peer/eap.c
+===================================================================
+--- wpa.orig/src/eap_peer/eap.c
++++ wpa/src/eap_peer/eap.c
+@@ -312,11 +312,13 @@ SM_STATE(EAP, RECEIVED)
+ 	eapReqData = eapol_get_eapReqData(sm);
+ 	/* parse rxReq, rxSuccess, rxFailure, reqId, reqMethod */
+ 	eap_sm_parseEapReq(sm, eapReqData);
+-	sm->num_rounds++;
+-	if (!eapReqData || wpabuf_len(eapReqData) < 20)
+-		sm->num_rounds_short++;
+-	else
+-		sm->num_rounds_short = 0;
++	if (sm->selectedMethod != EAP_TYPE_NONE || sm->reqMethod != EAP_TYPE_IDENTITY) {
++		sm->num_rounds++;
++		if (!eapReqData || wpabuf_len(eapReqData) < 20)
++			sm->num_rounds_short++;
++		else
++			sm->num_rounds_short = 0;
++	}
+ }
+ 
+ 
+@@ -1498,7 +1500,7 @@ static void eap_sm_processIdentity(struc
+ 	const u8 *pos;
+ 	size_t msg_len;
+ 
+-	wpa_msg(sm->msg_ctx, MSG_INFO, WPA_EVENT_EAP_STARTED
++	wpa_msg(sm->msg_ctx, MSG_DEBUG, WPA_EVENT_EAP_STARTED
+ 		"EAP authentication started");
+ 	eap_notify_status(sm, "started", "");
+ 
