@@ -1,3 +1,9 @@
+wpa (2:2.10-deepin5) unstable; urgency=medium
+
+  * Increase the value of DEFAULT_BSS_MAX_COUNT.
+
+ -- tunaichao <tunaichao@uniontech.com>  Thu, 16 Apr 2026 10:46:57 +0800
+
 wpa (2:2.10-deepin4) unstable; urgency=medium
 
   * Avoid incrementing round counter for non-initial Identity Requests.
