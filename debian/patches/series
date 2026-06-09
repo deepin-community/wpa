@@ -24,3 +24,4 @@ uniontech-dbus-security-hardending.patch
 uniontech-dbus-add-a-new-property-SAEConfirmMismatch.patch
 uniontech-not-increase-for-non-initial-Identity-Requests.patch
 uniontech-increase-DEFAULT_BSS_MAX_COUNT.patch
+fix-eap-auth-avoid-redundant-eapol-reinit.patch

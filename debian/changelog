@@ -1,3 +1,9 @@
+
+wpa (2:2.10-deepin6) unstable; urgency=medium
+
+  * Avoid redundant EAPOL state machine re-initialization during IEEE 802.1X Authentication
+
+ -- deepin-ci-robot <packages@deepin.org>  Tue, 09 Jun 2026 09:30:27 +0800
 wpa (2:2.10-deepin5) unstable; urgency=medium
 
   * Increase the value of DEFAULT_BSS_MAX_COUNT.
