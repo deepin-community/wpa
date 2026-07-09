@@ -1,3 +1,9 @@
+wpa (2:2.10-deepin6) unstable; urgency=medium
+
+  * UT-2026-0030: Engine trusted path hardening.
+
+ -- tunaichao <tunaichao@uniontech.com>  Thu, 09 Jul 2026 09:18:26 +0800
+
 wpa (2:2.10-deepin5) unstable; urgency=medium
 
   * Increase the value of DEFAULT_BSS_MAX_COUNT.

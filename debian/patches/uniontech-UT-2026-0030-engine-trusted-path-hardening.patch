@@ -1,0 +1,173 @@
+Description: harden PKCS#11/OpenSC engine trusted-path check (UT-2026-0030)
+ The CVE-2024-5290 mitigation only verifies that the canonical engine/module
+ path is prefixed with /usr/lib/. That is insufficient: it does not verify the
+ file owner, its permission bits, or that the ancestor directory tree is
+ root-owned. Via the D-Bus SetPKCS11EngineAndModulePath method (reachable by the
+ default netdev desktop user) an attacker could supply a path resolving under
+ /usr/lib/ to a user/group-writable location and have the malicious shared
+ library dlopen()'d by the root-privileged wpa_supplicant during TLS
+ re-initialisation, yielding local privilege escalation.
+ .
+ Enforce, in addition to the prefix check, that the target is a regular file
+ owned by root (uid 0), not writable by group/others, and that every ancestor
+ directory is likewise a directory, root-owned and not writable by group/others.
+ The file check uses lstat() to never follow a symlink.
+Author: UnionTech Software Technology Co., Ltd.
+Origin: uniontech
+Bug: UT-2026-0030
+Forwarded: not-needed
+
+Index: wpa/src/crypto/tls_openssl.c
+===================================================================
+--- wpa.orig/src/crypto/tls_openssl.c
++++ wpa/src/crypto/tls_openssl.c
+@@ -864,6 +864,87 @@ static int tls_engine_load_dynamic_gener
+ 
+ #define TRUSTED_PATH "/usr/lib/"
+ 
++#include <sys/stat.h>
++
++/*
++ * tls_engine_path_trusted - strong trusted-path verification for engine .so
++ *
++ * CVE-2024-5290 only checked that the canonical path is prefixed with
++ * TRUSTED_PATH. That is insufficient (UT-2026-0030): it neither verifies the
++ * file owner nor its permission bits, nor that the ancestor directory tree is
++ * root-owned. Through the D-Bus SetPKCS11EngineAndModulePath method (reachable
++ * by the default netdev desktop user) an attacker could supply a path that
++ * resolves under TRUSTED_PATH to a user/group-writable location and have the
++ * malicious shared library dlopen()'d by the root-privileged wpa_supplicant
++ * during TLS re-initialisation, yielding local privilege escalation.
++ *
++ * In addition to the prefix check, enforce that:
++ *   - the target is a regular file,
++ *   - it is owned by root (uid 0),
++ *   - it is not writable by group or others,
++ *   - every ancestor directory up to the file is itself a directory, owned by
++ *     root and not writable by group/others (otherwise a root-owned file could
++ *     be swapped by whoever controls such a directory).
++ * Returns 0 if the path is trusted (real_path filled with the canonical path),
++ * -1 otherwise.
++ */
++static int tls_engine_path_trusted(const char *path, char *real_path)
++{
++	struct stat st;
++	char dir[PATH_MAX];
++	char *slash, *next;
++
++	if (!path)
++		return -1;
++
++	/* NOTE: real_path is undefined when realpath() fails, so that message
++	 * must keep logging the original path; every message below this point
++	 * logs the canonical real_path. */
++	if (realpath(path, real_path) == NULL) {
++		wpa_printf(MSG_INFO,
++			   "ENGINE: refusing to load %s: realpath: %s",
++			   path, strerror(errno));
++		return -1;
++	}
++
++	if (strncmp(TRUSTED_PATH, real_path, strlen(TRUSTED_PATH)) != 0) {
++		wpa_printf(MSG_INFO,
++			   "ENGINE: refusing to load %s: not in trusted path %s",
++			   real_path, TRUSTED_PATH);
++		return -1;
++	}
++
++	/* The file itself must be a regular file, owned by root and not
++	 * writable by group/others. lstat() never follows a symlink, even
++	 * though realpath() has already canonicalised the path. */
++	if (lstat(real_path, &st) != 0 || !S_ISREG(st.st_mode) ||
++	    st.st_uid != 0 || (st.st_mode & (S_IWGRP | S_IWOTH))) {
++		wpa_printf(MSG_INFO,
++			   "ENGINE: refusing to load %s: not a root-owned, non-writable regular file",
++			   real_path);
++		return -1;
++	}
++
++	/* Every ancestor directory up to the trusted prefix must itself be a
++	 * directory, owned by root and not writable by group/others. */
++	os_strlcpy(dir, real_path, sizeof(dir));
++	slash = dir;
++	while ((next = strchr(slash + 1, '/')) != NULL) {
++		*next = '\0';
++		if (stat(dir, &st) != 0 || !S_ISDIR(st.st_mode) ||
++		    st.st_uid != 0 || (st.st_mode & (S_IWGRP | S_IWOTH))) {
++			wpa_printf(MSG_INFO,
++				   "ENGINE: refusing to load %s: insecure ancestor directory %s",
++				   real_path, dir);
++			return -1;
++		}
++		*next = '/';
++		slash = next;
++	}
++
++	return 0;
++}
++
+ /**
+  * tls_engine_load_dynamic_pkcs11 - load the pkcs11 engine provided by opensc
+  * @pkcs11_so_path: pksc11_so_path from the configuration
+@@ -891,37 +972,16 @@ static int tls_engine_load_dynamic_pkcs1
+ 	if (!pkcs11_so_path)
+ 		return 0;
+ 
+-	if (realpath(pkcs11_so_path, real_pkcs11_so_path) == NULL) {
+-		wpa_printf(MSG_INFO, "ENGINE: Failed to load pkcs11 Engine from %s: realpath: %s",
+-			   pkcs11_so_path,
+-			   strerror(errno));
++	if (tls_engine_path_trusted(pkcs11_so_path, real_pkcs11_so_path) < 0)
+ 		return -1;
+-	}
+-
+-	if (strncmp(TRUSTED_PATH, real_pkcs11_so_path, strlen(TRUSTED_PATH)) != 0) {
+-		wpa_printf(MSG_INFO, "ENGINE: Failed to load pkcs11 Engine from %s: Not in trusted path %s",
+-			   pkcs11_so_path,
+-			   TRUSTED_PATH);
+-		return -1;
+-	}
+ 
+ 	pre_cmd[1] = real_pkcs11_so_path;
+ 	pre_cmd[3] = engine_id;
+ 
+ 	if (pkcs11_module_path) {
+-		if (realpath(pkcs11_module_path, real_pkcs11_module_path) == NULL) {
+-			wpa_printf(MSG_INFO, "ENGINE: Failed to load pkcs11 Module from %s: realpath: %s",
+-				pkcs11_module_path,
+-				strerror(errno));
++		if (tls_engine_path_trusted(pkcs11_module_path,
++				real_pkcs11_module_path) < 0)
+ 			return -1;
+-		}
+-
+-		if (strncmp(TRUSTED_PATH, real_pkcs11_module_path, strlen(TRUSTED_PATH)) != 0) {
+-			wpa_printf(MSG_INFO, "ENGINE: Failed to load pkcs11 Module from %s: Not in trusted path %s",
+-				pkcs11_module_path,
+-				TRUSTED_PATH);
+-			return -1;
+-		}
+ 
+ 		wpa_printf(MSG_DEBUG, "ENGINE: Loading pkcs11 Engine from %s with module %s",
+ 			real_pkcs11_so_path, real_pkcs11_module_path);
+@@ -956,19 +1016,8 @@ static int tls_engine_load_dynamic_opens
+ 	if (!opensc_so_path)
+ 		return 0;
+ 
+-	if (realpath(opensc_so_path, real_opensc_so_path) == NULL) {
+-		wpa_printf(MSG_INFO, "ENGINE: Failed to load OpenSC Engine from %s: realpath: %s",
+-			   opensc_so_path,
+-			   strerror(errno));
++	if (tls_engine_path_trusted(opensc_so_path, real_opensc_so_path) < 0)
+ 		return -1;
+-	}
+-
+-	if (strncmp(TRUSTED_PATH, real_opensc_so_path, strlen(TRUSTED_PATH)) != 0) {
+-		wpa_printf(MSG_INFO, "ENGINE: Failed to load OpenSC Engine from %s: Not in trusted path %s",
+-			   opensc_so_path,
+-			   TRUSTED_PATH);
+-		return -1;
+-	}
+ 
+ 	pre_cmd[1] = real_opensc_so_path;
+ 	pre_cmd[3] = engine_id;
