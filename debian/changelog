@@ -1,3 +1,18 @@
+wpa (2:2.10-deepin7) unstable; urgency=medium
+
+  * fix: make 4.4 infinite recursion in debian/rules
+    - GNU Make 4.4 injects ALL exported recursive variables into every
+      $(shell ...) sub-process environment, triggering nested $(shell ...)
+      calls when CFLAGS/etc. contain $(call dpkg_lazy_eval,...,dpkg-buildflags...)
+    - Pre-populate dpkg_lazy_eval cache with DPKG_CACHE_* variables before
+      including /usr/share/dpkg/default.mk so buildflags.mk's recursive
+      definitions hit the cache at expand time
+    - Use CPPFLAGS_EXTRA := (simple expansion) to avoid recursive $(shell)
+      traps in DEB_CFLAGS_MAINT_APPEND / DEB_CXXFLAGS_MAINT_APPEND
+    - Fixes "debuild" hang on systems with GNU Make 4.4
+
+ -- lichenggang <lichenggang@uniontech.com>  Thu, 09 Jul 2026 18:10:00 +0800
+
 wpa (2:2.10-deepin6) unstable; urgency=medium
 
   * UT-2026-0030: Engine trusted path hardening.
