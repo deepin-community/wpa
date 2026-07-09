@@ -4,10 +4,25 @@ export QT_SELECT=qt5
 export DEB_BUILD_MAINT_OPTIONS=hardening=+all
 DPKG_EXPORT_BUILDFLAGS = 1
 
+# Workaround for make 4.4 bug: exported recursive variables containing
+# $(shell dpkg-buildflags ...) cause infinite recursion when a $(shell ...)
+# call is made, because make 4.4 injects ALL exported variables into the
+# sub-process environment, expanding them — which triggers nested $(shell ...).
+# Pre-populate dpkg_lazy_eval cache so buildflags.mk's recursive definitions
+# hit the cache and never issue a $(shell ...) call at expand time.
+$(foreach f,ASFLAGS ASFLAGS_FOR_BUILD CFLAGS CFLAGS_FOR_BUILD \
+             CPPFLAGS CPPFLAGS_FOR_BUILD CXXFLAGS CXXFLAGS_FOR_BUILD \
+             DFLAGS DFLAGS_FOR_BUILD FCFLAGS FCFLAGS_FOR_BUILD \
+             FFLAGS FFLAGS_FOR_BUILD LDFLAGS LDFLAGS_FOR_BUILD \
+             OBJCFLAGS OBJCFLAGS_FOR_BUILD OBJCXXFLAGS OBJCXXFLAGS_FOR_BUILD,\
+  $(eval DPKG_CACHE_$(f) := $(shell dpkg-buildflags --get $(f))))
+
 # The build system doesn't use CPPFLAGS, pass them to CFLAGS/CXXFLAGS to
 # enable the missing (hardening) flags
-DEB_CFLAGS_MAINT_APPEND   = -MMD -Wall $(shell dpkg-buildflags --get CPPFLAGS)
-DEB_CXXFLAGS_MAINT_APPEND = $(shell dpkg-buildflags --get CPPFLAGS)
+# Use a := (simple) variable to avoid recursive $(shell) traps.
+CPPFLAGS_EXTRA := $(shell dpkg-buildflags --get CPPFLAGS)
+DEB_CFLAGS_MAINT_APPEND   = -MMD -Wall $(CPPFLAGS_EXTRA)
+DEB_CXXFLAGS_MAINT_APPEND = $(CPPFLAGS_EXTRA)
 
 include /usr/share/dpkg/default.mk
 
