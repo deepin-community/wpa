@@ -26,3 +26,4 @@ uniontech-not-increase-for-non-initial-Identity-Requests.patch
 uniontech-increase-DEFAULT_BSS_MAX_COUNT.patch
 uniontech-UT-2026-0030-engine-trusted-path-hardening.patch
 CVE-2021-30004.patch
+CVE-2022-37660.patch
