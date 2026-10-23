@@ -1,6 +1,9 @@
 wpa (2:2.10-deepin10) unstable; urgency=medium
 
   * fix(cve): CVE-2022-37660
+  * fix(cve): CVE-2026-78807 (unknown) - Require network_ctx and AKMP
+    match for accepting PMKSA entry
+    Upstream: https://git.w1.fi/cgit/hostap/patch/?id=de5e73a03c34d83568afb3183b2b28c8d7641a30
 
  -- deepin-ci-robot <packages@deepin.org>  Mon, 26 Oct 2026 15:46:00 +0800
 
